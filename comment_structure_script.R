@@ -39,12 +39,13 @@ tmp3 <- tmp2 %>%
   mutate(within_order = row_number())
 
 # For level 2
-tmp3$parent_order <- ifelse(tmp3$depth == "level 1", tmp3$within_order, plyr::mapvalues(tmp3$parent_id, from = tmp3$name, to = tmp3$within_order))
+tmp3$parent_order <- ifelse(tmp3$depth == "level 2", 
+              plyr::mapvalues(tmp3$parent_id, from = tmp3$name, to = tmp3$within_order), "")
 
 tmp4 <- tmp3 %>% 
   mutate(level2 = ifelse(depth == "level 2", 
                          paste(parent_order, within_order, sep = "_"), ""))
-
+    
 # For level 3
 tmp4$parent_order2 <- ifelse(tmp4$depth == "level 3", 
                       plyr::mapvalues(tmp4$parent_id, from = tmp4$name, to = tmp4$level2), "")
@@ -63,7 +64,7 @@ tmp4 <- tmp4 %>%
 
 # Consolidating levels
 tmp5 <- tmp4 %>% 
-  mutate(structure = ifelse(depth == "level 1", parent_order, 
+  mutate(structure = ifelse(depth == "level 1", as.character(within_order), 
                             ifelse(depth == "level 2", level2, 
                                    ifelse(depth == "level 3", level3, 
                                           ifelse(depth == "level 4", level4, ""))))) %>% 
