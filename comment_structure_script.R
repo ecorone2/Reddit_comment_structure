@@ -78,5 +78,8 @@ while (i < (max(tmp3$depth) + 1)) {
 }
 
 # Cleaning up excess variables
-tmp4 <- tmp3 %>% 
+reddit_thread_with_structure <- tmp3 %>% 
   select(-(parent_level:parent_order))
+
+# Cleaning up excess dataframes
+rm(tmp1, tmp2, tmp3, tmp4)
