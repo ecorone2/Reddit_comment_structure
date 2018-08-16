@@ -82,4 +82,4 @@ reddit_thread_with_structure <- tmp3 %>%
   select(-(parent_level:parent_order))
 
 # Cleaning up excess dataframes
-rm(tmp1, tmp2, tmp3, tmp4)
+rm(tmp1, tmp2, tmp3)
