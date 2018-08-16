@@ -16,7 +16,7 @@ tmp2 <- tmp1 %>%
   mutate(depth = ifelse(link_id == parent_id, 1, 0),
          created_utc = as.POSIXct(created_utc, origin = "1970-01-01"))
 
-# While loop to run this "i" times
+# Initializing "i" variable to use as a counter
 i <- 1
 
 # I already know that this thread has a maximum of 4 levels
@@ -57,31 +57,25 @@ tmp3 <- tmp3 %>%
   mutate(structure = ifelse(depth == 1,
                             paste(within_order), ""))
 
-# Start loop here?
-# For level 2
+# Start looping here
+# For levels 2 to N
 
-tmp3$parent_order <- ifelse(tmp3$depth == 2, 
-      plyr::mapvalues(tmp3$parent_id, from = tmp3$name, to = tmp3$within_order, warn_missing = F), tmp3$parent_order)
+# Initializing "i" as a counter variable
+i <- 1
 
-tmp3 <- tmp3 %>% 
-  mutate(structure = ifelse(depth == 2, 
-      paste(parent_order, within_order, sep = "_"), structure))
-
-# For level 3
-tmp3$parent_order <- ifelse(tmp3$depth == 3, 
+while (i < (max(tmp3$depth) + 1)) {
+  print(paste(i, "start", sep = " - "))
+  tmp3$parent_order <- ifelse(tmp3$depth == (i + 1), 
       plyr::mapvalues(tmp3$parent_id, from = tmp3$name, to = tmp3$structure, warn_missing = F), tmp3$parent_order)
-
-tmp3 <- tmp3 %>% 
-  mutate(structure = ifelse(depth == 3, 
-       paste(parent_order, within_order, sep = "_"), structure))
-
-# For level 4
-tmp3$parent_order <- ifelse(tmp3$depth == 4, 
-       plyr::mapvalues(tmp3$parent_id, from = tmp3$name, to = tmp3$structure, warn_missing = F), tmp3$parent_order)
-
-tmp3 <- tmp3 %>% 
-  mutate(structure = ifelse(depth == 4, 
-       paste(parent_order, within_order, sep = "_"), structure))
+  
+  tmp3 <- tmp3 %>% 
+    mutate(structure = ifelse(depth == (i + 1), 
+      paste(parent_order, within_order, sep = "_"), structure))
+  
+  i <- i +1
+  print(paste(i, "finish", sep = " - "))
+  Sys.sleep(1)
+}
 
 # Cleaning up excess variables
 tmp4 <- tmp3 %>% 
