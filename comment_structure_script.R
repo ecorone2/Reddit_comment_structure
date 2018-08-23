@@ -16,11 +16,14 @@ tmp2 <- tmp1 %>%
   mutate(depth = ifelse(link_id == parent_id, 1, 0),
          created_utc = as.POSIXct(created_utc, origin = "1970-01-01"))
 
-# Initializing "i" variable to use as a counter
+# Initializing "i" variable to use as a counter and "y" as a data frame
 i <- 1
+y <- data.frame()
 
-# I already know that this thread has a maximum of 4 levels
-while (i < 5) {
+# It will iterate a maximum of 100 times (unlikely to be needed)
+# Iterations will stop running once the maximum comment depth is reached
+# Sys.sleep used for readability
+while (i < 100) {
   tmp2 <- tmp2 %>%
     mutate(
       parent_level = replace_na(as.numeric(plyr::mapvalues(
@@ -30,10 +33,15 @@ while (i < 5) {
         warn_missing = F)),
         0
       ),
-      depth = ifelse(parent_level == max(parent_level), (parent_level+ 1), depth))
+      depth = ifelse(parent_level == max(parent_level), (parent_level + 1), depth))
   i <- i + 1
   print(max(tmp2$depth))
+  temp <- max(tmp2$depth)
+  y <- data.frame(rbind(y, temp))
   Sys.sleep(0.5)
+  if (identical(y[nrow(y)-1,], y[nrow(y),])){
+    break
+  }
 }
 
 # Check number of comments for each depth level
@@ -61,10 +69,11 @@ tmp3 <- tmp3 %>%
 # For levels 2 to N
 
 # Initializing "i" as a counter variable
+# It will iterate until the maximum comment depth level is reached 
 i <- 1
 
 while (i < (max(tmp3$depth) + 1)) {
-  print(paste(i, "start", sep = " - "))
+  print(paste("starting level", i, sep = ": "))
   tmp3$parent_order <- ifelse(tmp3$depth == (i + 1), 
       plyr::mapvalues(tmp3$parent_id, from = tmp3$name, to = tmp3$structure, warn_missing = F), tmp3$parent_order)
   
@@ -73,7 +82,6 @@ while (i < (max(tmp3$depth) + 1)) {
       paste(parent_order, within_order, sep = "_"), structure))
   
   i <- i +1
-  print(paste(i, "finish", sep = " - "))
   Sys.sleep(1)
 }
 
