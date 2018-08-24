@@ -13,7 +13,9 @@ tmp1 <- usable_df %>%
 # Assigning levels 1 to N
 # Likely a mandatory start with level 1
 tmp2 <- tmp1 %>% 
-  mutate(depth = ifelse(link_id == parent_id, 1, 0),
+  mutate(depth = ifelse(test = link_id == parent_id, 
+                        yes = 1, 
+                        no = 0),
          created_utc = as.POSIXct(created_utc, origin = "1970-01-01"))
 
 # Initializing "i" variable to use as a counter and "y" as a data frame
@@ -33,13 +35,16 @@ while (i < 100) {
         warn_missing = F)),
         0
       ),
-      depth = ifelse(parent_level == max(parent_level), (parent_level + 1), depth))
+      depth = ifelse(test = parent_level == max(parent_level), 
+                     yes = parent_level + 1, 
+                     no = depth))
   i <- i + 1
-  print(max(tmp2$depth))
+  print(paste("Maximum depth level so far", max(tmp2$depth), sep = ": "))
   temp <- max(tmp2$depth)
   y <- data.frame(rbind(y, temp))
-  Sys.sleep(0.5)
+  Sys.sleep(1)
   if (identical(y[nrow(y)-1,], y[nrow(y),])){
+    print(paste("Maximum depth level of", temp, "reached. Iteration is finished.", sep = " "))
     break
   }
 }
@@ -56,14 +61,15 @@ tmp3 <- tmp2 %>%
 
 # Creating the structure
 # Likely another mandatory start for level 1
-
 # For level 1
 
-tmp3$parent_order <- ifelse(tmp3$depth == 1, tmp3$within_order, 0L)
-
 tmp3 <- tmp3 %>%
-  mutate(structure = ifelse(depth == 1,
-                            paste(within_order), ""))
+  mutate(parent_order = ifelse(test = depth == 1, 
+                               yes = within_order, 
+                               no = 0L),
+         structure = ifelse(test = depth == 1,
+                            yes = paste(within_order), 
+                            no = ""))
 
 # Start looping here
 # For levels 2 to N
@@ -73,15 +79,21 @@ tmp3 <- tmp3 %>%
 i <- 1
 
 while (i < (max(tmp3$depth) + 1)) {
-  print(paste("starting level", i, sep = ": "))
-  tmp3$parent_order <- ifelse(tmp3$depth == (i + 1), 
-      plyr::mapvalues(tmp3$parent_id, from = tmp3$name, to = tmp3$structure, warn_missing = F), tmp3$parent_order)
+  print(paste("Starting depth level", i, sep = ": "))
+  
+  tmp3$parent_order <- ifelse(test = tmp3$depth == i + 1, 
+                              yes = plyr::mapvalues(tmp3$parent_id, 
+                                                    from = tmp3$name, 
+                                                    to = tmp3$structure, 
+                                                    warn_missing = F), 
+                              no = tmp3$parent_order)
   
   tmp3 <- tmp3 %>% 
-    mutate(structure = ifelse(depth == (i + 1), 
-      paste(parent_order, within_order, sep = "_"), structure))
+    mutate(structure = ifelse(test = depth == i + 1,
+                              yes = paste(parent_order, within_order, sep = "_"), 
+                              no = structure))
   
-  i <- i +1
+  i <- i + 1
   Sys.sleep(1)
 }
 
